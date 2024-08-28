@@ -1,0 +1,65 @@
+<nav class="fixed top-0 left-0 z-50 flex gap-2 items-center p-2">
+  <button
+    class="main-button tool text-center w-12 h-12 rounded-full shadow-xl hover:opacity-80 focus:tool-highlighted block transition-all"
+    id="tool-btn-openeditor">C</button
+  >
+  <button
+    class="main-button tool text-center w-12 h-12 rounded-full shadow-xl hover:opacity-80 focus:tool-highlighted block transition-all"
+    id="tool-btn-onstage">B</button
+  >
+
+  <button
+    class="main-button tool text-center w-12 h-12 rounded-full shadow-xl hover:opacity-80 focus:tool-highlighted block transition-all"
+    id="tool-btn-write">A</button
+  >
+</nav>
+
+<style>
+  .tool-highlighted {
+    background-color: red;
+  }
+</style>
+
+<script>
+  import { StatusMode, showFloatTools } from "@/js/store";
+  import { STATUS_MODES } from "@/js/constants";
+
+  const $btnWrite = document.querySelector("#tool-btn-write");
+  const $btnOnstage = document.querySelector("#tool-btn-onstage");
+  const $btnOpenEditor = document.querySelector("#tool-btn-openeditor");
+
+  $btnWrite.addEventListener("click", () => {
+    StatusMode.set(STATUS_MODES.DRAWING);
+  });
+  $btnOnstage.addEventListener("click", () => {
+    StatusMode.set(STATUS_MODES.ONSTAGE);
+  });
+  $btnOpenEditor.addEventListener("click", () => {
+    showFloatTools.set(!showFloatTools.value);
+  });
+
+  StatusMode.subscribe((mode) => {
+    switch (mode) {
+      case STATUS_MODES.DRAWING:
+        $btnWrite.classList.add("tool-highlighted");
+        $btnOnstage.classList.remove("tool-highlighted");
+        break;
+      case STATUS_MODES.ONSTAGE:
+        $btnWrite.classList.remove("tool-highlighted");
+        $btnOnstage.classList.add("tool-highlighted");
+        break;
+      default:
+        $btnWrite.classList.remove("tool-highlighted");
+        $btnOnstage.classList.remove("tool-highlighted");
+        break;
+    }
+  });
+
+  showFloatTools.subscribe((show) => {
+    if (show) {
+      $btnOpenEditor.classList.add("tool-highlighted");
+    } else {
+      $btnOpenEditor.classList.remove("tool-highlighted");
+    }
+  });
+</script>

@@ -1,0 +1,21 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "@/components/header.astro";
+import NavTools from "@/components/nav-tools.astro";
+import Screen from "@/components/screen.astro";
+import FloatTools from "@/components/float-tools.astro";
+---
+
+<Layout title="Welcome to Astro.">
+  <main>
+    <Header />
+    <NavTools />
+    <Screen />
+    <FloatTools />
+  </main>
+</Layout>
+
+<script>
+  import Main from "@/js/main";
+  Main();
+</script>

@@ -1,0 +1,38 @@
+---
+import IconMenu from "@/components/icons/menu.astro";
+import Menu from "./menu.astro";
+---
+
+<header class="fixed top-0 right-0 z-50 p-2">
+  <button
+    class="main-button tool text-center w-12 h-12 rounded-full shadow-xl hover:opacity-80 focus:tool-highlighted block transition-all"
+    id="btn-menu"><IconMenu /></button
+  >
+  <menu
+    class="absolute top-full tool z-50 flex gap-3 items-center rounded-md shadow-xl ff-hide ff-menu-content min-w-56 right-2 transition-all"
+    id="content-menu"
+  >
+    <Menu />
+  </menu>
+</header>
+
+<style>
+  .ff-hide {
+    visibility: hidden;
+    transform: translateY(-5px);
+    opacity: 0;
+  }
+</style>
+<script>
+  (() => {
+    const $button = document.getElementById("btn-menu");
+    const $content = document.getElementById("content-menu");
+
+    $button.addEventListener("focus", () => {
+      $content.classList.remove(`ff-hide`);
+    });
+    $button.addEventListener("blur", () => {
+      $content.classList.add(`ff-hide`);
+    });
+  })();
+</script>

@@ -1,0 +1,62 @@
+<section class="screen-content">
+  <div class="screen-content-konva" id="screen-content-konva"></div>
+  <div class="screen-content-drawing" id="screen-content-drawing">
+    <canvas
+      class="screen-code-canvas"
+      id="screen-code-canvas"
+      width="20"
+      height="20"></canvas>
+    <canvas class="screen-drawing-canvas" id="screen-drawing-canvas"></canvas>
+  </div>
+</section>
+
+<style>
+  .screen-content {
+    position: relative;
+    width: 100dvw;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .screen-content-drawing {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100dvw;
+    height: 100dvh;
+    overflow: hidden;
+    z-index: 12;
+    display: none;
+    &.show {
+      display: block;
+    }
+  }
+  .screen-code-canvas {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    display: none;
+    background-color: #ff0;
+  }
+  .screen-drawing-canvas {
+    position: relative;
+    display: block;
+  }
+</style>
+
+<script>
+  import { StatusMode, showFloatTools } from "@/js/store";
+  import { STATUS_MODES } from "@/js/constants";
+
+  const screenContentDrawing = document.getElementById(
+    "screen-content-drawing"
+  );
+
+  StatusMode.subscribe((mode) => {
+    if (mode === STATUS_MODES.DRAWING) {
+      screenContentDrawing.classList.add("show");
+    } else {
+      screenContentDrawing.classList.remove("show");
+    }
+  });
+</script>
