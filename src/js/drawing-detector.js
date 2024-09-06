@@ -26,7 +26,6 @@ class ML5Detector {
     });
     this.classifier.load(modelInfo, () => {
       this.ready = true;
-      console.log("ready");
     });
   }
   evaluateInput(inputs) {

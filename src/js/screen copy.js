@@ -1,64 +1,41 @@
 import Konva from "konva";
 import {
-  STATUS_MODES,
-  STAGE_NAME,
   SELECTION_RECTANGLE_ATTRIBUTES,
   TRANSFORMER_ATTRIBUTES,
+  STAGE_NAME,
   OBJECT_SELECTABLE_BY_GROUP_NAME,
   OBJECT_SELECTABLE_BY_CLICK_NAME,
-} from "./constants";
-import { StatusMode, StageDraggable } from "@/js/store";
-import ContainerObject from "@/js/objects/container";
+} from "@/js/constants";
 
 class Screen {
   constructor(containerStageId) {
     this.status = "SELECTABLE";
-
+    this.setupStage(containerStageId);
+  }
+  setupStage(containerStageId) {
+    this.container = document.getElementById(containerStageId);
     this.stage = new Konva.Stage({
-      container: containerStageId,
+      container: this.container,
       width: window.innerWidth,
       height: window.innerHeight,
-      // x: 0.5 * window.innerWidth,
-      // y: 0.5 * window.innerHeight,
       name: STAGE_NAME,
-      //  draggable: true,
     });
+
     this.layer = new Konva.Layer();
     this.stage.add(this.layer);
 
-    //
-    const circle = new Konva.Circle({
-      x: 0,
-      y: 0,
-      radius: 5,
-      fill: "yellow",
-    });
-    this.layer.add(circle);
+    // add the layer to the stage
+    this.stage.add(this.layer);
+
+    // draw the image
     this.layer.draw();
-    //
-    this.onResize();
-    //
-    // OBJECTS
-    this.objects = [];
-    //
+
     this.setupObjectsSelector();
-    //
-    StageDraggable.subscribe((value) => {
-      this.stage.draggable(value);
-    });
-  }
-  onResize() {
-    window.addEventListener("resize", () => {
-      this.stage.width(window.innerWidth);
-      this.stage.height(window.innerHeight);
-    });
   }
   setupObjectsSelector() {
     // SELECTORS HELPERS
     const selectionRectangle = new Konva.Rect({
-      fill: "rgba(100,200,255,0.3)",
-      stroke: "rgba(140,220,255,1)",
-      strokeWidth: 1,
+      fill: "rgba(0,0,255,0.3)",
       visible: false,
       listening: false,
     });
@@ -117,7 +94,7 @@ class Screen {
         width: Math.abs(x2 - x1),
         height: Math.abs(y2 - y1),
       });
-      selectionRectangle.moveToTop();
+
       isSelecting = true;
     });
 
@@ -153,7 +130,6 @@ class Screen {
 
       // set attributes to transformer
       transformer.setAttrs(TRANSFORMER_ATTRIBUTES);
-      transformer.moveToTop();
     });
 
     // When click, should select/deselect object
@@ -175,54 +151,8 @@ class Screen {
       if (!e.target.hasName(OBJECT_SELECTABLE_BY_CLICK_NAME)) {
         return;
       }
-
-      const nodeToAdd = e.target.getParent();
-
-      // do we pressed shift or ctrl?
-      const metaPressed = e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey;
-      const isSelected = transformer.nodes().indexOf(nodeToAdd) >= 0;
-
-      let listToAdd = [];
-
-      if (!metaPressed && !isSelected) {
-        // if no key pressed and the node is not selected
-        // select just one
-        listToAdd = [nodeToAdd];
-      } else if (metaPressed && isSelected) {
-        // if we pressed keys and node was selected
-        // we need to remove it from selection:
-        const newNodes = transformer.nodes().slice(); // use slice to have new copy of array
-        // remove node from array
-        newNodes.splice(newNodes.indexOf(nodeToAdd), 1);
-        listToAdd = newNodes;
-      } else if (metaPressed && !isSelected) {
-        // add the node into selection
-        listToAdd = transformer.nodes().concat([nodeToAdd]);
-      }
-
-      transformer.nodes(listToAdd);
+      transformer.nodes([e.target]);
       transformer.setAttrs(TRANSFORMER_ATTRIBUTES);
-      transformer.moveToTop();
-    });
-  }
-  addFromDrawing(drawing) {
-    // TO DO
-    StatusMode.set(STATUS_MODES.ONSTAGE);
-
-    const { type, x, y, width, height } = drawing;
-
-    new ContainerObject({
-      screen: this,
-      type,
-      x: x - this.stage.x(),
-      y: y - this.stage.y(),
-      width,
-      height,
-      /* type: "circle",
-      x: 100,
-      y: 100,
-      width: 100,
-      height: 100, */
     });
   }
 }

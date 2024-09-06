@@ -134,7 +134,7 @@ class Rectangle {
     // TEXT EDITION
     const inp = document.querySelector("#inp");
     this.textBox.on("pointerdblclick", () => {
-      console.log("asdasd");
+      
       const top = this.group.y() + this.textBox.y();
       const left = this.group.x();
       const width = this.textBox.width();
