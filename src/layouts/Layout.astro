@@ -62,4 +62,20 @@ const { title } = Astro.props;
     color: var(--color-fg);
     background: var(--color-bg-tools-2);
   }
+  .bg-base {
+    background-color: var(--color-bg);
+  }
+
+  .more-colors:before {
+    position: absolute;
+    top: -10px;
+    right: 8px;
+    content: "";
+    display: block;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 6px 10px 6px;
+    border-color: transparent transparent var(--color-bg) transparent;
+  }
 </style>

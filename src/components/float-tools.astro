@@ -28,12 +28,12 @@
 </style>
 
 <script>
-  import { showFloatTools } from "@/js/store";
+  import { showEditTools } from "@/js/store";
 
   const $floatTools = document.getElementById("float-tools");
   const $floatToolsHeader = document.getElementById("float-tools-header");
 
-  showFloatTools.subscribe((show) => {
+  showEditTools.subscribe((show) => {
     if (show) {
       $floatTools.classList.add("show");
     } else {

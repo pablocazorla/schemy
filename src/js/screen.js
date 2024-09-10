@@ -4,15 +4,32 @@ import {
   STAGE_NAME,
   SELECTION_RECTANGLE_ATTRIBUTES,
   TRANSFORMER_ATTRIBUTES,
-  OBJECT_SELECTABLE_BY_GROUP_NAME,
-  OBJECT_SELECTABLE_BY_CLICK_NAME,
+  ELEMENT_SELECTABLE_BY_GROUP_NAME,
+  ELEMENT_SELECTABLE_BY_CLICK_NAME,
+  SNAP_SIZE,
 } from "./constants";
-import { StatusMode, StageDraggable } from "@/js/store";
-import ContainerObject from "@/js/objects/container";
+import {
+  StatusMode,
+  StageDragging,
+  showEditTools,
+  //
+  prop_fillColor,
+  prop_strokeColor,
+  prop_textColor,
+  prop_fontSize,
+  prop_fontFamily,
+  prop_textAlign,
+  //
+} from "@/js/store";
+import ContainerElement from "@/js/elements/container";
+import KeyInput from "./keyInput";
+import { snapGrid, arrayColorToString, stringToArrayColor } from "./utils";
 
 class Screen {
   constructor(containerStageId) {
-    this.status = "SELECTABLE";
+    this.status = "ENABLED";
+    this.clipboardForElements = [];
+    this.elementsSelection = [];
 
     this.stage = new Konva.Stage({
       container: containerStageId,
@@ -27,25 +44,25 @@ class Screen {
     this.stage.add(this.layer);
 
     //
-    const circle = new Konva.Circle({
+    /* const circle = new Konva.Circle({
       x: 0,
       y: 0,
       radius: 5,
       fill: "yellow",
     });
-    this.layer.add(circle);
+    this.layer.add(circle); */
+    //
     this.layer.draw();
     //
     this.onResize();
     //
-    // OBJECTS
-    this.objects = [];
+    this.setupElementsSelector();
     //
-    this.setupObjectsSelector();
+    this.setupInputs();
     //
-    StageDraggable.subscribe((value) => {
-      this.stage.draggable(value);
-    });
+    this.setupMove();
+    //
+    this.setupEditElementsSelection();
   }
   onResize() {
     window.addEventListener("resize", () => {
@@ -53,7 +70,191 @@ class Screen {
       this.stage.height(window.innerHeight);
     });
   }
-  setupObjectsSelector() {
+  setupInputs() {
+    const inputHandler = new KeyInput();
+
+    //Dragging STAGE
+    inputHandler.onKeyDown(" ", () => {
+      if (StatusMode.get() === STATUS_MODES.ONSTAGE) {
+        StageDragging.set(true);
+      }
+    });
+    inputHandler.onKeyUp(" ", () => {
+      StageDragging.set(false);
+    });
+    StageDragging.subscribe((value) => {
+      this.stage.draggable(value);
+      if (value) {
+        this.stage.container().style.cursor = "grab";
+      } else {
+        this.stage.container().style.cursor = "default";
+      }
+    });
+    // Elements selection clearing
+    StatusMode.subscribe((mode) => {
+      if (mode !== STATUS_MODES.ONSTAGE) {
+        this.addToTransformer([]);
+      }
+    });
+
+    // Move elements
+    inputHandler.onKeyDown("ArrowUp", () => {
+      if (StatusMode.get() !== STATUS_MODES.ONSTAGE) {
+        return;
+      }
+      if (this.elementsSelection.length === 0) {
+        return;
+      }
+      this.elementsSelection.forEach((elem) => {
+        elem.y(elem.y() - SNAP_SIZE);
+      });
+    });
+    inputHandler.onKeyDown("ArrowDown", () => {
+      if (StatusMode.get() !== STATUS_MODES.ONSTAGE) {
+        return;
+      }
+
+      if (this.elementsSelection.length === 0) {
+        return;
+      }
+      this.elementsSelection.forEach((elem) => {
+        elem.y(elem.y() + SNAP_SIZE);
+      });
+    });
+    inputHandler.onKeyDown("ArrowLeft", () => {
+      if (StatusMode.get() !== STATUS_MODES.ONSTAGE) {
+        return;
+      }
+
+      if (this.elementsSelection.length === 0) {
+        return;
+      }
+      this.elementsSelection.forEach((elem) => {
+        elem.x(elem.x() - SNAP_SIZE);
+      });
+    });
+    inputHandler.onKeyDown("ArrowRight", () => {
+      if (StatusMode.get() !== STATUS_MODES.ONSTAGE) {
+        return;
+      }
+
+      if (this.elementsSelection.length === 0) {
+        return;
+      }
+      this.elementsSelection.forEach((elem) => {
+        elem.x(elem.x() + SNAP_SIZE);
+      });
+    });
+    // DELETE elements
+    inputHandler.onKeyDown("Delete", () => {
+      if (StatusMode.get() !== STATUS_MODES.ONSTAGE) {
+        return;
+      }
+      if (this.elementsSelection.length === 0) {
+        return;
+      }
+      this.elementsSelection.forEach((elem) => {
+        elem.destroy();
+      });
+      this.addToTransformer([]);
+    });
+    // COPY elements
+    // TODO: USAR CONTAINER ELEMENT
+    /*
+    inputHandler.onKeyCtrlPress("c", () => {
+      if (StatusMode.get() !== STATUS_MODES.ONSTAGE) {
+        return;
+      }
+      if (this.elementsSelection.length === 0) {
+        return;
+      }
+      this.clipboardForElements = [];
+      this.elementsSelection.forEach((elem) => {
+        this.clipboardForElements.push(elem.clone());
+      });
+    });
+    // PASTE elements
+    inputHandler.onKeyCtrlPress("v", () => {
+      if (StatusMode.get() !== STATUS_MODES.ONSTAGE) {
+        return;
+      }
+      if (this.clipboardForElements.length === 0) {
+        return;
+      }
+      const newElements = [];
+      this.clipboardForElements.forEach((elem) => {
+        const newElem = elem.clone();
+        newElem.x(newElem.x() + SNAP_SIZE);
+        newElem.y(newElem.y() + SNAP_SIZE);
+        this.layer.add(newElem);
+        newElements.push(newElem);
+      });
+      this.addToTransformer(newElements);
+    });
+    */
+  }
+
+  addToTransformer(selectedElements) {
+    this.transformer.nodes(selectedElements);
+    this.elementsSelection = selectedElements;
+    this.transformer.moveToTop();
+    if (selectedElements.length > 0) {
+      if (selectedElements.length === 1) {
+        this.refillPropsByElementSelection();
+      }
+      showEditTools.set(true);
+    }
+  }
+  setupEditElementsSelection() {
+    prop_fillColor.subscribe((value) => {
+      this.elementsSelection.forEach((elem) => {
+        const [container] = elem.getChildren();
+        container.fill(arrayColorToString(value));
+      });
+    });
+    prop_strokeColor.subscribe((value) => {
+      this.elementsSelection.forEach((elem) => {
+        const [container] = elem.getChildren();
+        container.stroke(arrayColorToString(value));
+      });
+    });
+    prop_textColor.subscribe((value) => {
+      this.elementsSelection.forEach((elem) => {
+        const [, text] = elem.getChildren();
+        text.fill(arrayColorToString(value));
+      });
+    });
+    prop_fontSize.subscribe((value) => {
+      this.elementsSelection.forEach((elem) => {
+        const [, text] = elem.getChildren();
+        text.fontSize(value);
+      });
+    });
+    prop_fontFamily.subscribe((value) => {
+      this.elementsSelection.forEach((elem) => {
+        const [, text] = elem.getChildren();
+        text.fontFamily(value);
+      });
+    });
+    prop_textAlign.subscribe((value) => {
+      this.elementsSelection.forEach((elem) => {
+        const [, text] = elem.getChildren();
+        text.align(value);
+      });
+    });
+  }
+  refillPropsByElementSelection() {
+    const [elem] = this.elementsSelection;
+    const [container, text] = elem.getChildren();
+    //
+    prop_fillColor.set(stringToArrayColor(container.fill()));
+    prop_strokeColor.set(stringToArrayColor(container.stroke()));
+    prop_textColor.set(stringToArrayColor(text.fill()));
+    prop_fontSize.set(text.fontSize());
+    prop_fontFamily.set(text.fontFamily());
+    prop_textAlign.set(text.align());
+  }
+  setupElementsSelector() {
     // SELECTORS HELPERS
     const selectionRectangle = new Konva.Rect({
       fill: "rgba(100,200,255,0.3)",
@@ -64,21 +265,28 @@ class Screen {
     });
     this.layer.add(selectionRectangle);
 
-    const transformer = new Konva.Transformer();
-    this.layer.add(transformer);
+    this.transformer = new Konva.Transformer(TRANSFORMER_ATTRIBUTES);
+    this.layer.add(this.transformer);
 
     // VARIABLES
     let x1,
       y1,
       x2,
       y2,
+      dx,
+      dy,
       startSelecting = false,
       isSelecting = false;
 
     // EVENTS
     this.stage.on("mousedown touchstart", (e) => {
+      const metaPressed = e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey;
       // do nothing if we mousedown on any shape
-      if (e.target !== this.stage || this.status !== "SELECTABLE") {
+      if (
+        e.target !== this.stage ||
+        this.status !== "ENABLED" ||
+        !metaPressed
+      ) {
         return;
       }
 
@@ -86,10 +294,12 @@ class Screen {
 
       // set variables to initial position
       const { x, y } = this.stage.getPointerPosition();
-      x1 = x;
-      y1 = y;
-      x2 = x;
-      y2 = y;
+      dx = this.stage.x();
+      dy = this.stage.y();
+      x1 = x - dx;
+      y1 = y - dy;
+      x2 = x - dx;
+      y2 = y - dy;
 
       // set attributes to selectionRectangle
       selectionRectangle.width(0);
@@ -105,8 +315,8 @@ class Screen {
 
       // set variables to current position
       const { x, y } = this.stage.getPointerPosition();
-      x2 = x;
-      y2 = y;
+      x2 = x - dx;
+      y2 = y - dy;
 
       // set attributes to selectionRectangle
       selectionRectangle.setAttrs({
@@ -128,7 +338,7 @@ class Screen {
       if (!isSelecting) {
         return;
       }
-      if (this.status !== "SELECTABLE") {
+      if (this.status !== "ENABLED") {
         isSelecting = false;
         return;
       }
@@ -141,38 +351,36 @@ class Screen {
       // set attributes to selectionRectangle
       selectionRectangle.visible(false);
 
-      // get selected objects
-      const allObjects = this.stage.find(`.${OBJECT_SELECTABLE_BY_GROUP_NAME}`);
+      // get selected elements
+      const allElements = this.stage.find(
+        `.${ELEMENT_SELECTABLE_BY_GROUP_NAME}`
+      );
       var selectionRectangleBox = selectionRectangle.getClientRect();
-      var selectedObjects = allObjects.filter((obj) =>
+      var selectedElements = allElements.filter((obj) =>
         Konva.Util.haveIntersection(selectionRectangleBox, obj.getClientRect())
       );
 
-      // add selected objects to transformer
-      transformer.nodes(selectedObjects);
-
-      // set attributes to transformer
-      transformer.setAttrs(TRANSFORMER_ATTRIBUTES);
-      transformer.moveToTop();
+      // add selected elements
+      this.addToTransformer(selectedElements);
     });
 
-    // When click, should select/deselect object
+    // When click, should select/deselect element
     this.stage.on("click tap", (e) => {
       // if we are startSelecting with rect, do nothing
 
-      if (isSelecting || this.status !== "SELECTABLE") {
+      if (isSelecting || this.status !== "ENABLED") {
         return;
       }
 
       // if click on empty area - remove all selections
 
       if (e.target.hasName(STAGE_NAME)) {
-        transformer.nodes([]);
+        this.addToTransformer([]);
         return;
       }
 
-      // do nothing if clicked in a NOT selectable object
-      if (!e.target.hasName(OBJECT_SELECTABLE_BY_CLICK_NAME)) {
+      // do nothing if clicked in a NOT selectable element
+      if (!e.target.hasName(ELEMENT_SELECTABLE_BY_CLICK_NAME)) {
         return;
       }
 
@@ -180,7 +388,7 @@ class Screen {
 
       // do we pressed shift or ctrl?
       const metaPressed = e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey;
-      const isSelected = transformer.nodes().indexOf(nodeToAdd) >= 0;
+      const isSelected = this.transformer.nodes().indexOf(nodeToAdd) >= 0;
 
       let listToAdd = [];
 
@@ -191,18 +399,26 @@ class Screen {
       } else if (metaPressed && isSelected) {
         // if we pressed keys and node was selected
         // we need to remove it from selection:
-        const newNodes = transformer.nodes().slice(); // use slice to have new copy of array
+        const newNodes = this.transformer.nodes().slice(); // use slice to have new copy of array
         // remove node from array
         newNodes.splice(newNodes.indexOf(nodeToAdd), 1);
         listToAdd = newNodes;
       } else if (metaPressed && !isSelected) {
         // add the node into selection
-        listToAdd = transformer.nodes().concat([nodeToAdd]);
+        listToAdd = this.transformer.nodes().concat([nodeToAdd]);
       }
 
-      transformer.nodes(listToAdd);
-      transformer.setAttrs(TRANSFORMER_ATTRIBUTES);
-      transformer.moveToTop();
+      this.addToTransformer(listToAdd);
+    });
+  }
+  setupMove() {
+    this.stage.on("dragmove", () => {
+      const newX = snapGrid(this.stage.x());
+      const newY = snapGrid(this.stage.y());
+      this.stage.setAttrs({
+        x: newX,
+        y: newY,
+      });
     });
   }
   addFromDrawing(drawing) {
@@ -211,18 +427,13 @@ class Screen {
 
     const { type, x, y, width, height } = drawing;
 
-    new ContainerObject({
+    new ContainerElement({
       screen: this,
       type,
       x: x - this.stage.x(),
       y: y - this.stage.y(),
       width,
       height,
-      /* type: "circle",
-      x: 100,
-      y: 100,
-      width: 100,
-      height: 100, */
     });
   }
 }

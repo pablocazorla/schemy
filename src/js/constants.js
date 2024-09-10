@@ -4,8 +4,8 @@ export const STATUS_MODES = {
   TEXT_WRITING: "TEXT_WRITING",
 };
 export const STAGE_NAME = "STAGE_MAIN";
-export const OBJECT_SELECTABLE_BY_GROUP_NAME = "SELECTABLE_BY_GROUP";
-export const OBJECT_SELECTABLE_BY_CLICK_NAME = "SELECTABLE_BY_CLICK";
+export const ELEMENT_SELECTABLE_BY_GROUP_NAME = "SELECTABLE_BY_GROUP";
+export const ELEMENT_SELECTABLE_BY_CLICK_NAME = "SELECTABLE_BY_CLICK";
 
 export const CORNER_RADIUS = 10;
 export const BORDER_WIDTH = 2;
@@ -21,6 +21,21 @@ export const TRANSFORMER_ATTRIBUTES = {
 };
 
 export const SNAP_SIZE = 20;
+
+export const TOOLS_PAD_WIDTH = 225;
+export const TOOLS_PAD_PADDING_X = 8;
+export const TOOLS_PAD_PADDING_Y = 70;
+
+export const DEFAULT_COLORS = [
+  [1, 100, 50],
+  [30, 100, 50],
+  [80, 100, 50],
+  [150, 100, 50],
+  [200, 100, 50],
+];
+
+export const DEFAULT_OPACITIES = [0.1, 0.25, 0.5, 0.75, 1];
+export const DEFAULT_OPACITY_FILL = 0.5;
 
 /////////////////////////
 

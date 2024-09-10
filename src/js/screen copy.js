@@ -3,8 +3,8 @@ import {
   SELECTION_RECTANGLE_ATTRIBUTES,
   TRANSFORMER_ATTRIBUTES,
   STAGE_NAME,
-  OBJECT_SELECTABLE_BY_GROUP_NAME,
-  OBJECT_SELECTABLE_BY_CLICK_NAME,
+  ELEMENT_SELECTABLE_BY_GROUP_NAME,
+  ELEMENT_SELECTABLE_BY_CLICK_NAME,
 } from "@/js/constants";
 
 class Screen {
@@ -119,7 +119,9 @@ class Screen {
       selectionRectangle.visible(false);
 
       // get selected objects
-      const allObjects = this.stage.find(`.${OBJECT_SELECTABLE_BY_GROUP_NAME}`);
+      const allObjects = this.stage.find(
+        `.${ELEMENT_SELECTABLE_BY_GROUP_NAME}`
+      );
       var selectionRectangleBox = selectionRectangle.getClientRect();
       var selectedObjects = allObjects.filter((obj) =>
         Konva.Util.haveIntersection(selectionRectangleBox, obj.getClientRect())
@@ -148,7 +150,7 @@ class Screen {
       }
 
       // do nothing if clicked in a NOT selectable object
-      if (!e.target.hasName(OBJECT_SELECTABLE_BY_CLICK_NAME)) {
+      if (!e.target.hasName(ELEMENT_SELECTABLE_BY_CLICK_NAME)) {
         return;
       }
       transformer.nodes([e.target]);

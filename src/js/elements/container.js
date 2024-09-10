@@ -1,19 +1,21 @@
 import Konva from "konva";
 import {
-  OBJECT_SELECTABLE_BY_CLICK_NAME,
-  OBJECT_SELECTABLE_BY_GROUP_NAME,
+  ELEMENT_SELECTABLE_BY_CLICK_NAME,
+  ELEMENT_SELECTABLE_BY_GROUP_NAME,
   CORNER_RADIUS,
   BORDER_WIDTH,
+  SNAP_SIZE,
 } from "@/js/constants";
 import {
-  prop_fill,
-  prop_stroke,
+  prop_fillColor,
+  prop_strokeColor,
   prop_fontSize,
   prop_fontFamily,
   prop_textColor,
   prop_textAlign,
 } from "@/js/store";
-import { snapGrid } from "../utils";
+import { snapGrid, arrayColorToString } from "../utils";
+import { StageDragging } from "@/js/store";
 
 class ContainerObject {
   constructor({ screen, type, x, y, width, height }) {
@@ -34,37 +36,43 @@ class ContainerObject {
       fontSize: prop_fontSize.get(),
       fontFamily: prop_fontFamily.get(),
       align: prop_textAlign.get(),
-      fill: prop_textColor.get(),
+      fill: arrayColorToString(prop_textColor.get()),
       width: widthGrid,
       name: "TEXT",
     });
     this.textBox.setAttrs({
-      y: 0.5 * (height - this.textBox.height()),
+      y: 0.5 * (heightGrid - this.textBox.height()),
     });
 
     this.group = new Konva.Group({
       x: xGrid,
       y: yGrid,
       draggable: true,
-      name: OBJECT_SELECTABLE_BY_GROUP_NAME,
+      name: ELEMENT_SELECTABLE_BY_GROUP_NAME,
     });
 
     this.group.add(this.containerBox);
     this.group.add(this.textBox);
     this.screen.layer.add(this.group);
-    this.screen.objects.push(this);
+    //this.screen.elements.push(this);
     //
+    this.setupInputs();
     this.setupTransformations();
     this.setupMove();
+  }
+  setupInputs() {
+    StageDragging.subscribe((value) => {
+      this.group.draggable(!value);
+    });
   }
   setupTransformations() {
     this.group.on("transform", () => {
       //
       const newWidth = snapGrid(
-        Math.max(this.containerBox.width() * this.group.scaleX(), BORDER_WIDTH)
+        Math.max(this.containerBox.width() * this.group.scaleX(), SNAP_SIZE)
       );
       const newHeight = snapGrid(
-        Math.max(this.containerBox.height() * this.group.scaleY(), BORDER_WIDTH)
+        Math.max(this.containerBox.height() * this.group.scaleY(), SNAP_SIZE)
       );
       this.containerBox.setAttrs({
         width: newWidth,
@@ -90,13 +98,13 @@ class ContainerObject {
       const newWidth = snapGrid(
         Math.max(
           this.containerBox.width() * this.containerBox.scaleX(),
-          BORDER_WIDTH
+          SNAP_SIZE
         )
       );
       const newHeight = snapGrid(
         Math.max(
           this.containerBox.height() * this.containerBox.scaleY(),
-          BORDER_WIDTH
+          SNAP_SIZE
         )
       );
       const newYtext = 0.5 * (newHeight - this.textBox.height());
@@ -133,10 +141,10 @@ class ContainerObject {
           y: 0,
           width,
           height,
-          fill: prop_fill.get(),
-          stroke: prop_stroke.get(),
+          fill: arrayColorToString(prop_fillColor.get()),
+          stroke: arrayColorToString(prop_strokeColor.get()),
           strokeWidth: BORDER_WIDTH,
-          name: OBJECT_SELECTABLE_BY_CLICK_NAME,
+          name: ELEMENT_SELECTABLE_BY_CLICK_NAME,
           sceneFunc: function (context, shape) {
             context.beginPath();
 
@@ -160,10 +168,10 @@ class ContainerObject {
           y: 0,
           width,
           height,
-          fill: prop_fill.get(),
-          stroke: prop_stroke.get(),
+          fill: arrayColorToString(prop_fillColor.get()),
+          stroke: arrayColorToString(prop_strokeColor.get()),
           strokeWidth: BORDER_WIDTH,
-          name: OBJECT_SELECTABLE_BY_CLICK_NAME,
+          name: ELEMENT_SELECTABLE_BY_CLICK_NAME,
           sceneFunc: function (context, shape) {
             context.beginPath();
             context.moveTo(0.5 * shape.getAttr("width"), 0);
@@ -189,11 +197,11 @@ class ContainerObject {
           y: 0,
           width,
           height,
-          fill: prop_fill.get(),
-          stroke: prop_stroke.get(),
+          fill: arrayColorToString(prop_fillColor.get()),
+          stroke: arrayColorToString(prop_strokeColor.get()),
           strokeWidth: BORDER_WIDTH,
           cornerRadius: CORNER_RADIUS,
-          name: OBJECT_SELECTABLE_BY_CLICK_NAME,
+          name: ELEMENT_SELECTABLE_BY_CLICK_NAME,
         });
     }
   }

@@ -1,3 +1,5 @@
+import { SNAP_SIZE } from "./constants";
+
 const MINICANVAS_SIZE = 20;
 const RADIUS_DRAW = 6;
 const DEFAULT_BOUNDARIES = {
@@ -33,6 +35,9 @@ class ML5Detector {
       return;
     }
     this.classifier.classify(inputs, (results) => {
+      if (!results) {
+        return;
+      }
       const value = results.reduce(
         (obj, v) => {
           const { confidence, label } = v;
@@ -134,14 +139,19 @@ class DrawingDetector {
     this.ctxDrawing.clearRect(0, 0, this.width, this.height);
   }
   putToCanvasCode() {
+    const width = this.boundaries.xMax - this.boundaries.xMin;
+    const height = this.boundaries.yMax - this.boundaries.yMin;
+
+    if (width < 2 * SNAP_SIZE || height < 2 * SNAP_SIZE) {
+      this.clear();
+      return;
+    }
+
     const imgSrc = this.canvasDrawing.toDataURL("image/png");
 
     const img = new Image();
     img.src = imgSrc;
     img.onload = () => {
-      const width = this.boundaries.xMax - this.boundaries.xMin;
-      const height = this.boundaries.yMax - this.boundaries.yMin;
-
       this.ctxCode.fillRect(0, 0, MINICANVAS_SIZE, MINICANVAS_SIZE);
 
       this.ctxCode.drawImage(

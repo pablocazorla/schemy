@@ -4,6 +4,7 @@ import Header from "@/components/header.astro";
 import NavTools from "@/components/nav-tools.astro";
 import Screen from "@/components/screen.astro";
 import FloatTools from "@/components/float-tools.astro";
+import ToolEdit from "@/components/toolEdit";
 ---
 
 <Layout title="Schemy App">
@@ -11,7 +12,7 @@ import FloatTools from "@/components/float-tools.astro";
     <Header />
     <NavTools />
     <Screen />
-    <FloatTools />
+    <ToolEdit client:load />
   </main>
 </Layout>
 
