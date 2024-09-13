@@ -15,6 +15,7 @@ import {
   //
   prop_fillColor,
   prop_strokeColor,
+  prop_strokeWidth,
   prop_textColor,
   prop_fontSize,
   prop_fontFamily,
@@ -28,6 +29,7 @@ import { snapGrid, arrayColorToString, stringToArrayColor } from "./utils";
 class Screen {
   constructor(containerStageId) {
     this.status = "ENABLED";
+    this.containerPool = {};
     this.clipboardForElements = [];
     this.elementsSelection = [];
 
@@ -154,13 +156,15 @@ class Screen {
         return;
       }
       this.elementsSelection.forEach((elem) => {
-        elem.destroy();
+        const containerId = elem.id();
+        this.containerPool[containerId].onDelete();
+        delete this.containerPool[containerId];
       });
       this.addToTransformer([]);
     });
     // COPY elements
     // TODO: USAR CONTAINER ELEMENT
-    /*
+
     inputHandler.onKeyCtrlPress("c", () => {
       if (StatusMode.get() !== STATUS_MODES.ONSTAGE) {
         return;
@@ -183,15 +187,20 @@ class Screen {
       }
       const newElements = [];
       this.clipboardForElements.forEach((elem) => {
-        const newElem = elem.clone();
-        newElem.x(newElem.x() + SNAP_SIZE);
-        newElem.y(newElem.y() + SNAP_SIZE);
-        this.layer.add(newElem);
-        newElements.push(newElem);
+        const nodeGroup = elem.clone();
+
+        nodeGroup.x(nodeGroup.x() + SNAP_SIZE);
+        nodeGroup.y(nodeGroup.y() + SNAP_SIZE);
+
+        new ContainerElement({
+          screen: this,
+          nodeGroup,
+        });
+
+        newElements.push(nodeGroup);
       });
       this.addToTransformer(newElements);
     });
-    */
   }
 
   addToTransformer(selectedElements) {
@@ -218,6 +227,12 @@ class Screen {
         container.stroke(arrayColorToString(value));
       });
     });
+    prop_strokeWidth.subscribe((value) => {
+      this.elementsSelection.forEach((elem) => {
+        const [container] = elem.getChildren();
+        container.strokeWidth(value);
+      });
+    });
     prop_textColor.subscribe((value) => {
       this.elementsSelection.forEach((elem) => {
         const [, text] = elem.getChildren();
@@ -226,8 +241,11 @@ class Screen {
     });
     prop_fontSize.subscribe((value) => {
       this.elementsSelection.forEach((elem) => {
-        const [, text] = elem.getChildren();
+        const [container, text] = elem.getChildren();
+
         text.fontSize(value);
+        const y = 0.5 * (container.height() - text.height());
+        text.y(y);
       });
     });
     prop_fontFamily.subscribe((value) => {
@@ -249,6 +267,7 @@ class Screen {
     //
     prop_fillColor.set(stringToArrayColor(container.fill()));
     prop_strokeColor.set(stringToArrayColor(container.stroke()));
+    prop_strokeWidth.set(container.strokeWidth());
     prop_textColor.set(stringToArrayColor(text.fill()));
     prop_fontSize.set(text.fontSize());
     prop_fontFamily.set(text.fontFamily());
@@ -427,7 +446,7 @@ class Screen {
 
     const { type, x, y, width, height } = drawing;
 
-    new ContainerElement({
+    const containerElement = new ContainerElement({
       screen: this,
       type,
       x: x - this.stage.x(),
@@ -435,6 +454,8 @@ class Screen {
       width,
       height,
     });
+
+    this.addToTransformer([containerElement.group]);
   }
 }
 

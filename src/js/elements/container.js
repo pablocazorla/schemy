@@ -3,12 +3,12 @@ import {
   ELEMENT_SELECTABLE_BY_CLICK_NAME,
   ELEMENT_SELECTABLE_BY_GROUP_NAME,
   CORNER_RADIUS,
-  BORDER_WIDTH,
   SNAP_SIZE,
 } from "@/js/constants";
 import {
   prop_fillColor,
   prop_strokeColor,
+  prop_strokeWidth,
   prop_fontSize,
   prop_fontFamily,
   prop_textColor,
@@ -17,52 +17,77 @@ import {
 import { snapGrid, arrayColorToString } from "../utils";
 import { StageDragging } from "@/js/store";
 
-class ContainerObject {
-  constructor({ screen, type, x, y, width, height }) {
+class ContainerElement {
+  constructor({ screen, nodeGroup, type, x, y, width, height }) {
     this.screen = screen;
-    this.type = type;
+    this.id = crypto.randomUUID();
+    this.deleted = false;
 
-    const xGrid = snapGrid(x);
-    const yGrid = snapGrid(y);
-    const widthGrid = snapGrid(width);
-    const heightGrid = snapGrid(height);
+    if (nodeGroup) {
+      const [container, text] = nodeGroup.getChildren();
+      this.type = container.getAttrs().type;
+      console.log(this.type);
+      this.containerBox = container;
+      this.textBox = text;
+      this.group = nodeGroup;
+    } else {
+      this.type = type;
+      const xGrid = snapGrid(x);
+      const yGrid = snapGrid(y);
+      const widthGrid = snapGrid(width);
+      const heightGrid = snapGrid(height);
 
-    this.containerBox = this.createContainerByType(type, widthGrid, heightGrid);
+      this.containerBox = this.createContainerByType(
+        type,
+        widthGrid,
+        heightGrid
+      );
+      this.textBox = new Konva.Text({
+        x: 0,
+        y: 0,
+        text: "Texto",
+        fontSize: prop_fontSize.get(),
+        fontFamily: prop_fontFamily.get(),
+        align: prop_textAlign.get(),
+        fill: arrayColorToString(prop_textColor.get()),
+        width: widthGrid,
+        name: "TEXT",
+        type: "text",
+      });
+      this.textBox.setAttrs({
+        y: 0.5 * (heightGrid - this.textBox.height()),
+      });
 
-    this.textBox = new Konva.Text({
-      x: 0,
-      y: 0,
-      text: "Texto",
-      fontSize: prop_fontSize.get(),
-      fontFamily: prop_fontFamily.get(),
-      align: prop_textAlign.get(),
-      fill: arrayColorToString(prop_textColor.get()),
-      width: widthGrid,
-      name: "TEXT",
-    });
-    this.textBox.setAttrs({
-      y: 0.5 * (heightGrid - this.textBox.height()),
-    });
+      this.group = new Konva.Group({
+        x: xGrid,
+        y: yGrid,
+        draggable: true,
+        name: ELEMENT_SELECTABLE_BY_GROUP_NAME,
+        type: "group",
+      });
 
-    this.group = new Konva.Group({
-      x: xGrid,
-      y: yGrid,
-      draggable: true,
-      name: ELEMENT_SELECTABLE_BY_GROUP_NAME,
-    });
+      this.group.add(this.containerBox);
+      this.group.add(this.textBox);
+      console.log("id", this.group.id());
+    }
 
-    this.group.add(this.containerBox);
-    this.group.add(this.textBox);
+    this.group.id(this.id);
+
     this.screen.layer.add(this.group);
-    //this.screen.elements.push(this);
     //
     this.setupInputs();
     this.setupTransformations();
     this.setupMove();
+
+    this.screen.containerPool[this.id] = this;
   }
+
   setupInputs() {
     StageDragging.subscribe((value) => {
-      this.group.draggable(!value);
+      if (!this.deleted) {
+        console.log("existo", this.group);
+        this.group.draggable(!value);
+      }
     });
   }
   setupTransformations() {
@@ -137,13 +162,14 @@ class ContainerObject {
     switch (type) {
       case "circle":
         return new Konva.Shape({
+          type,
           x: 0,
           y: 0,
           width,
           height,
           fill: arrayColorToString(prop_fillColor.get()),
           stroke: arrayColorToString(prop_strokeColor.get()),
-          strokeWidth: BORDER_WIDTH,
+          strokeWidth: prop_strokeWidth.get(),
           name: ELEMENT_SELECTABLE_BY_CLICK_NAME,
           sceneFunc: function (context, shape) {
             context.beginPath();
@@ -164,13 +190,14 @@ class ContainerObject {
 
       case "diamond":
         return new Konva.Shape({
+          type,
           x: 0,
           y: 0,
           width,
           height,
           fill: arrayColorToString(prop_fillColor.get()),
           stroke: arrayColorToString(prop_strokeColor.get()),
-          strokeWidth: BORDER_WIDTH,
+          strokeWidth: prop_strokeWidth.get(),
           name: ELEMENT_SELECTABLE_BY_CLICK_NAME,
           sceneFunc: function (context, shape) {
             context.beginPath();
@@ -185,6 +212,7 @@ class ContainerObject {
             );
             context.lineTo(0, 0.5 * shape.getAttr("height"));
             context.lineTo(0.5 * shape.getAttr("width"), 0);
+            context.closePath();
             // don't need to set position of rect, Konva will handle it
             // (!) Konva specific method, it is very important
             // it will apply are required styles
@@ -193,18 +221,26 @@ class ContainerObject {
         });
       default:
         return new Konva.Rect({
+          type: "rect",
           x: 0,
           y: 0,
           width,
           height,
           fill: arrayColorToString(prop_fillColor.get()),
           stroke: arrayColorToString(prop_strokeColor.get()),
-          strokeWidth: BORDER_WIDTH,
+          strokeWidth: prop_strokeWidth.get(),
           cornerRadius: CORNER_RADIUS,
           name: ELEMENT_SELECTABLE_BY_CLICK_NAME,
         });
     }
   }
+  onDelete() {
+    this.deleted = true;
+    this.group.destroy();
+    this.containerBox = null;
+    this.textBox = null;
+    this.group = null;
+  }
 }
 
-export default ContainerObject;
+export default ContainerElement;

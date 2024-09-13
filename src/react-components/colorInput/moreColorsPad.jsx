@@ -1,11 +1,12 @@
 import { hexToHSLarray, HSLarrayToHex } from "@/js/utils";
 import ButtonOpacity from "./buttonOpacity";
 import ButtonColor from "./buttonColor";
-import Label from "../label";
+import Label from "@/react-components/label";
 import { useEffect, useRef, useState } from "react";
 import { DEFAULT_OPACITIES } from "@/js/constants";
 import { prop_colorCollection } from "@/js/store";
-import useAtomProp from "../../hooks/useAtomProp";
+import useAtomProp from "@/react-components/hooks/useAtomProp";
+import Icon from "@/react-components/icon";
 
 const MoreColorsPad = ({
   opacity,
@@ -60,7 +61,7 @@ const MoreColorsPad = ({
         })}
         <div className="relative cursor-pointer">
           <div className="w-5 h-5  border border-gray-500 rounded flex items-center justify-center">
-            +
+            <Icon type="plus" />
           </div>
           <input
             type="color"

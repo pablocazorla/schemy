@@ -6,6 +6,7 @@ import {
 } from "@/js/constants";
 import { showEditTools } from "@/js/store";
 import Editor from "./editor";
+import Icon from "@/react-components/icon";
 
 const ToolEdit = () => {
   const padRef = useRef(null);
@@ -94,12 +95,12 @@ const ToolEdit = () => {
         <div className="">Tools</div>
         <div className="">
           <button className="" onClick={onClose}>
-            x
+            <Icon />
           </button>
         </div>
       </header>
       <div className="py-2 px-4">
-        <div className="max-h-[calc(100dvh-126px)] overflow-y-auto overflow-x-hidden">
+        <div className="h-[calc(100dvh-126px)] overflow-y-auto overflow-x-hidden scrollpad">
           <Editor />
         </div>
       </div>

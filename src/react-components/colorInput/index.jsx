@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import MoreColorsPad from "./moreColorsPad";
 import ButtonColor from "./buttonColor";
-import useAtomProp from "../../hooks/useAtomProp";
+import useAtomProp from "@/react-components/hooks/useAtomProp";
 import { prop_colorCollection } from "@/js/store";
+import Icon from "@/react-components/icon";
 
 const ColorInput = ({ colorProp }) => {
   const [colorValue, onChangeColor] = useAtomProp(colorProp);
@@ -56,7 +57,7 @@ const ColorInput = ({ colorProp }) => {
             setMoreColorsOpen(true);
           }}
         >
-          +
+          <Icon type="plus" />
         </button>
       </div>
       {moreColorsOpen ? (
