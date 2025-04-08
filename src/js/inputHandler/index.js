@@ -1,6 +1,4 @@
-import { atom } from "nanostores";
-
-class KeyInput {
+class InputHandler {
   constructor(target) {
     this.target = target || window;
   }
@@ -17,9 +15,11 @@ class KeyInput {
         keyIsDown = false;
       }
     });
+    return this;
   }
   onKeyDown(key, callback) {
     this.onKeyPress(key, callback);
+    return this;
   }
   onKeyUp(key, callback) {
     this.target.addEventListener("keyup", (e) => {
@@ -27,6 +27,7 @@ class KeyInput {
         callback();
       }
     });
+    return this;
   }
   onKeyCtrlPress(key, callback) {
     let ctrlIsDown = false;
@@ -49,7 +50,8 @@ class KeyInput {
         keyIsDown = false;
       }
     });
+    return this;
   }
 }
 
-export default KeyInput;
+export default InputHandler;

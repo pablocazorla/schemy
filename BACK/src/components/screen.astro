@@ -10,6 +10,9 @@ import TextInput from "@/react-components/textInput";
       id="screen-code-canvas"
       width="20"
       height="20"></canvas>
+    <canvas
+      class="screen-drawing-canvas-to-show"
+      id="screen-drawing-canvas-to-show"></canvas>
     <canvas class="screen-drawing-canvas" id="screen-drawing-canvas"></canvas>
   </div>
   <TextInput client:load />
@@ -21,6 +24,9 @@ import TextInput from "@/react-components/textInput";
     width: 100dvw;
     height: 100dvh;
     overflow: hidden;
+    background-image: url("/images/bg.svg");
+    background-size: 20px 20px;
+    background-position: 0 0;
   }
 
   .screen-content-drawing {
@@ -43,14 +49,21 @@ import TextInput from "@/react-components/textInput";
     display: none;
     background-color: #ff0;
   }
+
+  .screen-drawing-canvas-to-show {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+  }
   .screen-drawing-canvas {
     position: relative;
     display: block;
+    opacity: 0;
   }
-  .screen-content-konva {
-    background-image: url("/images/bg.svg");
-    background-size: 20px 20px;
-    background-position: 0 0;
+
+  .screen-content-konva.drawing-mode {
+    opacity: 0.6;
   }
 </style>
 
@@ -58,14 +71,17 @@ import TextInput from "@/react-components/textInput";
   import { StatusMode, showEditTools } from "@/js/store";
   import { STATUS_MODES } from "@/js/constants";
 
+  const screenContentKonva = document.getElementById("screen-content-konva");
   const screenContentDrawing = document.getElementById(
     "screen-content-drawing"
   );
 
   StatusMode.subscribe((mode) => {
     if (mode === STATUS_MODES.DRAWING) {
+      screenContentKonva.classList.add("drawing-mode");
       screenContentDrawing.classList.add("show");
     } else {
+      screenContentKonva.classList.remove("drawing-mode");
       screenContentDrawing.classList.remove("show");
     }
   });

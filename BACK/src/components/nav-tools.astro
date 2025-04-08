@@ -32,6 +32,7 @@
   });
 
   $btnOpenEditor.addEventListener("click", () => {
+    // StatusMode.set(STATUS_MODES.ONSTAGE);
     showEditTools.set(!showEditTools.value);
   });
 
@@ -42,6 +43,7 @@
         break;
       default:
         $btnWrite.classList.remove("tool-highlighted");
+        // showEditTools.set(!showEditTools.value);
         break;
     }
   });

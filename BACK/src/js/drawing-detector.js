@@ -1,4 +1,6 @@
 import { SNAP_SIZE } from "./constants";
+import { prop_strokeColor, prop_strokeWidth } from "./store";
+import { arrayColorToString } from "./utils";
 
 const MINICANVAS_SIZE = 20;
 const RADIUS_DRAW = 6;
@@ -57,8 +59,9 @@ class ML5Detector {
 }
 
 class DrawingDetector {
-  constructor(canvasDrawingId, canvasCodeId, screen) {
+  constructor(canvasDrawingId, canvasToShow, canvasCodeId, screen) {
     this.canvasDrawing = document.getElementById(canvasDrawingId);
+    this.canvasToShow = document.getElementById(canvasToShow);
     this.canvasCode = document.getElementById(canvasCodeId);
     this.screen = screen;
     this.ml5detector = new ML5Detector(this);
@@ -75,12 +78,18 @@ class DrawingDetector {
       this.height = window.innerHeight;
       this.canvasDrawing.width = this.width;
       this.canvasDrawing.height = this.height;
+      //
+      this.canvasToShow.width = this.width;
+      this.canvasToShow.height = this.height;
     };
     window.addEventListener("resize", resize);
     resize();
   }
   setupDrawing() {
     this.ctxDrawing = this.canvasDrawing.getContext("2d", {
+      willReadFrequently: true,
+    });
+    this.ctxToShow = this.canvasToShow.getContext("2d", {
       willReadFrequently: true,
     });
     this.ctxCode = this.canvasCode.getContext("2d", {
@@ -90,6 +99,15 @@ class DrawingDetector {
     this.ctxDrawing.strokeStyle = "#0F0";
     this.ctxDrawing.lineWidth = RADIUS_DRAW * 2;
     this.ctxDrawing.lineCap = "round";
+    //
+    prop_strokeColor.subscribe((value) => {
+      this.ctxToShow.strokeStyle = arrayColorToString(value);
+    });
+    prop_strokeWidth.subscribe((value) => {
+      this.ctxToShow.lineWidth = Math.max(value, 2);
+    });
+    this.ctxToShow.lineCap = "round";
+    //
     this.ctxCode.fillStyle = "#FFF";
     //
     let drawing = false;
@@ -116,6 +134,8 @@ class DrawingDetector {
   draw(e, status) {
     if (status === "end") {
       this.ctxDrawing.closePath();
+      //
+      this.ctxToShow.closePath();
       return;
     }
 
@@ -129,14 +149,21 @@ class DrawingDetector {
     if (status === "init") {
       this.ctxDrawing.beginPath();
       this.ctxDrawing.moveTo(x, y);
+      //
+      this.ctxToShow.beginPath();
+      this.ctxToShow.moveTo(x, y);
     }
     if (status === "drawing") {
       this.ctxDrawing.lineTo(x, y);
       this.ctxDrawing.stroke();
+      //
+      this.ctxToShow.lineTo(x, y);
+      this.ctxToShow.stroke();
     }
   }
   clear() {
     this.ctxDrawing.clearRect(0, 0, this.width, this.height);
+    this.ctxToShow.clearRect(0, 0, this.width, this.height);
   }
   putToCanvasCode() {
     const width = this.boundaries.xMax - this.boundaries.xMin;

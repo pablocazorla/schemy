@@ -13,13 +13,25 @@ export const SELECTION_RECTANGLE_ATTRIBUTES = {};
 export const TRANSFORMER_ATTRIBUTES = {
   ignoreStroke: true,
   padding: 4,
-  rotationSnaps: [0, 45, 90, 135, 180, 225, 270, 315],
+  //rotationSnaps: [0, 45, 90, 135, 180, 225, 270, 315],
   flipEnabled: false,
+  rotateEnabled: false,
   keepRatio: false,
   enabledAnchors: ["bottom-center", "bottom-right", "middle-right"],
 };
 
 export const SNAP_SIZE = 20;
+export const HIGHLIGHT = {
+  shadowColor: "#29F",
+  shadowBlur: 10,
+  shadowOffset: { x: 0, y: 0 },
+  shadowOpacity: 1,
+};
+export const NO_HIGHLIGHT = {
+  shadowColor: "transparent",
+  shadowBlur: 0,
+  shadowOpacity: 0,
+};
 
 export const TOOLS_PAD_WIDTH = 255;
 export const TOOLS_PAD_PADDING_X = 8;

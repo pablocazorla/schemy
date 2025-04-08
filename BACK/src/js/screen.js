@@ -22,7 +22,8 @@ import {
   prop_textAlign,
   //
 } from "@/js/store";
-import ContainerElement from "@/js/elements/container";
+import ContainerElement from "@/js/element";
+import Arrow from "@/js/arrow";
 import KeyInput from "./keyInput";
 import { snapGrid, arrayColorToString, stringToArrayColor } from "./utils";
 
@@ -32,6 +33,7 @@ class Screen {
     this.containerPool = {};
     this.clipboardForElements = [];
     this.elementsSelection = [];
+    this.arrowPool = {};
 
     this.stage = new Konva.Stage({
       container: containerStageId,
@@ -46,13 +48,7 @@ class Screen {
     this.stage.add(this.layer);
 
     //
-    /* const circle = new Konva.Circle({
-      x: 0,
-      y: 0,
-      radius: 5,
-      fill: "yellow",
-    });
-    this.layer.add(circle); */
+    new Arrow({ screen: this, x: 200, y: 200, width: 300, height: 200 });
     //
     this.layer.draw();
     //
@@ -395,6 +391,9 @@ class Screen {
 
       if (e.target.hasName(STAGE_NAME)) {
         this.addToTransformer([]);
+        Object.values(this.arrowPool).forEach((arrow) => {
+          arrow.toggleSelected(false);
+        });
         return;
       }
 
@@ -402,6 +401,10 @@ class Screen {
       if (!e.target.hasName(ELEMENT_SELECTABLE_BY_CLICK_NAME)) {
         return;
       }
+
+      Object.values(this.arrowPool).forEach((arrow) => {
+        arrow.toggleSelected(false);
+      });
 
       const nodeToAdd = e.target.getParent();
 
@@ -442,11 +445,12 @@ class Screen {
   }
   addFromDrawing(drawing) {
     // TO DO
-    StatusMode.set(STATUS_MODES.ONSTAGE);
+    // StatusMode.set(STATUS_MODES.ONSTAGE);
 
     const { type, x, y, width, height } = drawing;
 
-    const containerElement = new ContainerElement({
+    //const containerElement =
+    new ContainerElement({
       screen: this,
       type,
       x: x - this.stage.x(),
@@ -455,7 +459,7 @@ class Screen {
       height,
     });
 
-    this.addToTransformer([containerElement.group]);
+    //this.addToTransformer([containerElement.group]);
   }
 }
 

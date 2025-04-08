@@ -4,6 +4,8 @@ import {
   ELEMENT_SELECTABLE_BY_GROUP_NAME,
   CORNER_RADIUS,
   SNAP_SIZE,
+  HIGHLIGHT,
+  NO_HIGHLIGHT,
 } from "@/js/constants";
 import {
   prop_fillColor,
@@ -14,7 +16,7 @@ import {
   prop_textColor,
   prop_textAlign,
 } from "@/js/store";
-import { snapGrid, arrayColorToString } from "../utils";
+import { snapGrid, arrayColorToString } from "./utils";
 import { StageDragging } from "@/js/store";
 
 class ContainerElement {
@@ -26,7 +28,7 @@ class ContainerElement {
     if (nodeGroup) {
       const [container, text] = nodeGroup.getChildren();
       this.type = container.getAttrs().type;
-      console.log(this.type);
+
       this.containerBox = container;
       this.textBox = text;
       this.group = nodeGroup;
@@ -68,7 +70,6 @@ class ContainerElement {
 
       this.group.add(this.containerBox);
       this.group.add(this.textBox);
-      console.log("id", this.group.id());
     }
 
     this.group.id(this.id);
@@ -81,11 +82,9 @@ class ContainerElement {
 
     this.screen.containerPool[this.id] = this;
   }
-
   setupInputs() {
     StageDragging.subscribe((value) => {
       if (!this.deleted) {
-        console.log("existo", this.group);
         this.group.draggable(!value);
       }
     });
@@ -94,10 +93,13 @@ class ContainerElement {
     this.group.on("transform", () => {
       //
       const newWidth = snapGrid(
-        Math.max(this.containerBox.width() * this.group.scaleX(), SNAP_SIZE)
+        Math.max(this.containerBox.width() * this.group.scaleX(), 2 * SNAP_SIZE)
       );
       const newHeight = snapGrid(
-        Math.max(this.containerBox.height() * this.group.scaleY(), SNAP_SIZE)
+        Math.max(
+          this.containerBox.height() * this.group.scaleY(),
+          2 * SNAP_SIZE
+        )
       );
       this.containerBox.setAttrs({
         width: newWidth,
@@ -117,8 +119,35 @@ class ContainerElement {
         scaleX: 1,
         scaleY: 1,
       });
-    });
+      /*
+      // CONTROL POINTS
+      const controlAnchorPointsPositions = [
+        [0.5 * (newWidth - CONTROL_ANCHOR_POINT_WIDTH), 0],
+        [
+          newWidth - CONTROL_ANCHOR_POINT_HEIGHT,
+          0.5 * (newHeight - CONTROL_ANCHOR_POINT_WIDTH),
+        ],
+        [
+          0.5 * (newWidth - CONTROL_ANCHOR_POINT_WIDTH),
+          newHeight - CONTROL_ANCHOR_POINT_HEIGHT,
+        ],
+        [
+          0,
+          0.5 * (newHeight - CONTROL_ANCHOR_POINT_WIDTH),
+          CONTROL_ANCHOR_POINT_HEIGHT,
+        ],
+      ];
 
+      CONTROL_ANCHOR_POINTS_LETTERS.forEach((letter, i) => {
+        this[`controAnchorPoint_${letter}`].setAttrs({
+          x: controlAnchorPointsPositions[i][0],
+          y: controlAnchorPointsPositions[i][1],
+        });
+      });
+
+      */
+    });
+    /*
     this.containerBox.on("transform", () => {
       const newWidth = snapGrid(
         Math.max(
@@ -147,6 +176,7 @@ class ContainerElement {
         width: newWidth,
       });
     });
+    */
   }
   setupMove() {
     this.group.on("dragmove", () => {
@@ -232,6 +262,13 @@ class ContainerElement {
           cornerRadius: CORNER_RADIUS,
           name: ELEMENT_SELECTABLE_BY_CLICK_NAME,
         });
+    }
+  }
+  toggleHighlight(flag) {
+    if (this.containerBox) {
+      this.containerBox.setAttrs({
+        ...(flag ? HIGHLIGHT : NO_HIGHLIGHT),
+      });
     }
   }
   onDelete() {

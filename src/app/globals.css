@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  overflow: hidden;
+  font-family: var(--font-open-sans);
+}
+body {
+  width: 100dvw;
+  height: 100dvh;
+  /* background-color: hsla(194, 100%, 50%, 0.897); */
+}
+.italic {
+  font-family: var(--font-open-sans_italic);
+}
+.font-opensans {
+  font-family: var(--font-open-sans);
+}
+.font-opensans_italic {
+  font-family: var(--font-open-sans_italic);
+}
+.font-shantell {
+  font-family: var(--font-shantell);
+}
+.font-shantell_italic {
+  font-family: var(--font-shantell_italic);
+}
+.font-lora {
+  font-family: var(--font-lora);
+}
+.font-lora_italic {
+  font-family: var(--font-lora_italic);
+}
+.font-robotoslab,
+.font-robotoslab_italic {
+  font-family: var(--font-roboto-slab);
+}
+.font-ubuntumono {
+  font-family: var(--font-ubuntu-mono);
+}
+.font-ubuntumono_italic {
+  font-family: var(--font-ubuntu-mono_italic);
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .custom-scrollbar {
+    &::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: #222;
+      border-radius: 4px;
+    }
+  }
+}
